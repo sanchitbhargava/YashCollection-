@@ -119,9 +119,8 @@ const getFeaturedProducts = async (req, res, next) => {
 const getProduct = async (req, res, next) => {
   try {
     const { idOrSlug } = req.params;
-    const isObjectId = /^[a-f\d]{24}$/i.test(idOrSlug);
-    // Use explicit ObjectId when idOrSlug is an ID to prevent tainted value in query
-    const query = isObjectId
+    // Use isValidObjectId helper for consistency
+    const query = isValidObjectId(idOrSlug)
       ? { _id: new mongoose.Types.ObjectId(idOrSlug) }
       : { slug: String(idOrSlug).slice(0, 200) };
 
@@ -166,15 +165,27 @@ const updateProduct = async (req, res, next) => {
     }
     const safeId = new mongoose.Types.ObjectId(req.params.id);
 
+    // Whitelist updatable product fields to prevent MongoDB operator injection
+    const UPDATABLE_FIELDS = [
+      'name', 'description', 'shortDescription', 'price', 'comparePrice',
+      'images', 'category', 'collection', 'fabric', 'sizes', 'colors',
+      'stock', 'sku', 'isFeatured', 'isActive', 'tags', 'careInstructions',
+      'shippingWeight',
+    ];
+    const allowedUpdates = {};
+    UPDATABLE_FIELDS.forEach((field) => {
+      if (req.body[field] !== undefined) allowedUpdates[field] = req.body[field];
+    });
+
     // Regenerate slug if name changed — safe, bounded character-class regex
-    if (req.body.name) {
-      req.body.slug = req.body.name
+    if (allowedUpdates.name) {
+      allowedUpdates.slug = allowedUpdates.name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
     }
 
-    const product = await Product.findByIdAndUpdate(safeId, req.body, {
+    const product = await Product.findByIdAndUpdate(safeId, { $set: allowedUpdates }, {
       new: true,
       runValidators: true,
     });
