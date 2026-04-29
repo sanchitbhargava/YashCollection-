@@ -192,11 +192,11 @@ const getAllOrders = async (req, res, next) => {
     const limit = Math.min(100, parseInt(req.query.limit, 10) || 20);
     const skip = (page - 1) * limit;
 
+    const ALLOWED_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
     const filter = {};
-    const allowedStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
-    if (req.query.status && allowedStatuses.includes(req.query.status)) {
-      filter.status = req.query.status;
-    }
+    // Use .find() so the value placed in filter comes from our constant array, not user input
+    const safeStatus = ALLOWED_STATUSES.find((s) => s === req.query.status);
+    if (safeStatus !== undefined) filter.status = safeStatus;
     if (req.query.isPaid) filter.isPaid = req.query.isPaid === 'true';
     if (req.query.isDelivered) filter.isDelivered = req.query.isDelivered === 'true';
 

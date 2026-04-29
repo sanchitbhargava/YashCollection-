@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
+const mongoose = require('mongoose');
 const { AppError } = require('../middleware/errorHandler');
 const { escapeRegex } = require('../utils/helpers');
 
@@ -29,7 +30,9 @@ const updateUserProfile = async (req, res, next) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
-    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+    // req.user._id is a Mongoose ObjectId set by JWT auth middleware; cast explicitly
+    const safeUserId = new mongoose.Types.ObjectId(req.user._id.toString());
+    const user = await User.findByIdAndUpdate(safeUserId, updates, {
       new: true,
       runValidators: true,
     }).select('-__v');
@@ -179,11 +182,11 @@ const getAllUsers = async (req, res, next) => {
     const limit = Math.min(100, parseInt(req.query.limit, 10) || 20);
     const skip = (page - 1) * limit;
 
+    const ALLOWED_ROLES = ['user', 'admin'];
     const filter = {};
-    const allowedRoles = ['user', 'admin'];
-    if (req.query.role && allowedRoles.includes(req.query.role)) {
-      filter.role = req.query.role;
-    }
+    // Use .find() so the value placed in filter comes from our constant array, not user input
+    const safeRole = ALLOWED_ROLES.find((r) => r === req.query.role);
+    if (safeRole !== undefined) filter.role = safeRole;
     if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === 'true';
     if (req.query.search) {
       const escaped = escapeRegex(req.query.search);

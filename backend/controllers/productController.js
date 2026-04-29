@@ -212,18 +212,19 @@ const getProductReviews = async (req, res, next) => {
     if (!isValidObjectId(req.params.id)) {
       return next(new AppError('Invalid product ID', 400));
     }
+    const safeProductId = new mongoose.Types.ObjectId(req.params.id);
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(50, parseInt(req.query.limit, 10) || 10);
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
-      Review.find({ product: req.params.id })
+      Review.find({ product: safeProductId })
         .populate('user', 'name avatar')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      Review.countDocuments({ product: req.params.id }),
+      Review.countDocuments({ product: safeProductId }),
     ]);
 
     res.status(200).json({
@@ -247,12 +248,13 @@ const addProductReview = async (req, res, next) => {
     if (!isValidObjectId(req.params.id)) {
       return next(new AppError('Invalid product ID', 400));
     }
-    const product = await Product.findOne({ _id: req.params.id, isActive: true });
+    const safeProductId = new mongoose.Types.ObjectId(req.params.id);
+    const product = await Product.findOne({ _id: safeProductId, isActive: true });
     if (!product) return next(new AppError('Product not found', 404));
 
     const existingReview = await Review.findOne({
       user: req.user._id,
-      product: req.params.id,
+      product: safeProductId,
     });
     if (existingReview) {
       return next(new AppError('You have already reviewed this product', 400));
@@ -260,7 +262,7 @@ const addProductReview = async (req, res, next) => {
 
     const review = await Review.create({
       user: req.user._id,
-      product: req.params.id,
+      product: safeProductId,
       rating: req.body.rating,
       title: req.body.title,
       comment: req.body.comment,
