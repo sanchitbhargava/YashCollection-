@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Custom scrollbar ─────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f9fafb; }
+::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #db2777; }
+
+/* ── Smooth scroll ────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+/* ── Global link reset ────────────────────────────── */
+a { text-decoration: none; }
+
+/* ── Product card ─────────────────────────────────── */
+@layer components {
+  .product-card {
+    @apply bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group;
+  }
+  .product-card-img {
+    @apply w-full object-cover transition-transform duration-500 group-hover:scale-105;
+  }
+  .btn-primary {
+    @apply bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2.5 px-6 rounded-full transition-all duration-200 shadow-sm hover:shadow-md active:scale-95;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-pink-50 text-pink-600 border border-pink-600 font-semibold py-2.5 px-6 rounded-full transition-all duration-200;
+  }
+  .btn-outline {
+    @apply bg-transparent hover:bg-gray-100 text-gray-700 border border-gray-300 font-semibold py-2.5 px-6 rounded-full transition-all duration-200;
+  }
+  .input-base {
+    @apply w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all duration-200;
+  }
+  .section-title {
+    @apply text-2xl md:text-3xl font-bold text-gray-900 text-center;
+  }
+  .section-subtitle {
+    @apply text-gray-500 text-center mt-2 max-w-xl mx-auto;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .badge-new { @apply badge bg-green-100 text-green-700; }
+  .badge-sale { @apply badge bg-red-100 text-red-700; }
+}
+
+/* ── Animations ───────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes pulse-pink { 0%, 100% { box-shadow: 0 0 0 0 rgba(219,39,119,.4); } 70% { box-shadow: 0 0 0 8px rgba(219,39,119,0); } }
+
+.animate-fade-in { animation: fadeIn .4s ease-out both; }
+.animate-slide-in { animation: slideIn .3s ease-out both; }
+.animate-pulse-pink { animation: pulse-pink 2s infinite; }
+
+/* ── Line clamp utility ───────────────────────────── */
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ── Skeleton loading ─────────────────────────────── */
+.skeleton { @apply bg-gray-200 rounded animate-pulse; }
+
+/* ── Hero gradient ────────────────────────────────── */
+.hero-gradient { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 40%, #fbcfe8 100%); }
+
+/* ── Glass card ───────────────────────────────────── */
+.glass-card { backdrop-filter: blur(12px); background: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.3); }
