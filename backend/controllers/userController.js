@@ -23,16 +23,14 @@ const getUserProfile = async (req, res, next) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = async (req, res, next) => {
-  try {
-    const allowedFields = ['name', 'phone', 'avatar'];
-    const updates = {};
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) updates[field] = req.body[field];
-    });
-
-    // req.user._id is a Mongoose ObjectId set by JWT auth middleware; cast explicitly
+  try {    // Build update with explicit field extraction — only string fields, no MongoDB operators
     const safeUserId = new mongoose.Types.ObjectId(req.user._id.toString());
-    const user = await User.findByIdAndUpdate(safeUserId, updates, {
+    const updates = {};
+    if (req.body.name !== undefined) updates.name = String(req.body.name).slice(0, 100);
+    if (req.body.phone !== undefined) updates.phone = String(req.body.phone).slice(0, 20);
+    if (req.body.avatar !== undefined) updates.avatar = String(req.body.avatar).slice(0, 500);
+
+    const user = await User.findByIdAndUpdate(safeUserId, { $set: updates }, {
       new: true,
       runValidators: true,
     }).select('-__v');

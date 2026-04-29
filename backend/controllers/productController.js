@@ -120,7 +120,10 @@ const getProduct = async (req, res, next) => {
   try {
     const { idOrSlug } = req.params;
     const isObjectId = /^[a-f\d]{24}$/i.test(idOrSlug);
-    const query = isObjectId ? { _id: idOrSlug } : { slug: idOrSlug };
+    // Use explicit ObjectId when idOrSlug is an ID to prevent tainted value in query
+    const query = isObjectId
+      ? { _id: new mongoose.Types.ObjectId(idOrSlug) }
+      : { slug: String(idOrSlug).slice(0, 200) };
 
     const product = await Product.findOne({ ...query, isActive: true })
       .select('-__v')
