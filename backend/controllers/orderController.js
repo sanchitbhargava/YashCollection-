@@ -193,7 +193,10 @@ const getAllOrders = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
-    if (req.query.status) filter.status = req.query.status;
+    const allowedStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+    if (req.query.status && allowedStatuses.includes(req.query.status)) {
+      filter.status = req.query.status;
+    }
     if (req.query.isPaid) filter.isPaid = req.query.isPaid === 'true';
     if (req.query.isDelivered) filter.isDelivered = req.query.isDelivered === 'true';
 

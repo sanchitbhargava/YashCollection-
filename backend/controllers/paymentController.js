@@ -1,4 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const { AppError } = require('../middleware/errorHandler');
 const { isValidObjectId } = require('../utils/helpers');
@@ -14,7 +15,8 @@ const createPaymentIntent = async (req, res, next) => {
       return next(new AppError('Invalid order ID', 400));
     }
 
-    const order = await Order.findById(orderId);
+    const safeOrderId = new mongoose.Types.ObjectId(orderId);
+    const order = await Order.findById(safeOrderId);
     if (!order) return next(new AppError('Order not found', 404));
 
     if (order.user.toString() !== req.user._id.toString()) {
@@ -64,13 +66,14 @@ const confirmPayment = async (req, res, next) => {
       return next(new AppError('Invalid order ID', 400));
     }
 
+    const safeOrderId = new mongoose.Types.ObjectId(orderId);
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status !== 'succeeded') {
       return next(new AppError(`Payment not successful. Status: ${paymentIntent.status}`, 400));
     }
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(safeOrderId);
     if (!order) return next(new AppError('Order not found', 404));
 
     if (order.user.toString() !== req.user._id.toString()) {

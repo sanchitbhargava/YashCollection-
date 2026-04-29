@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const Review = require('../models/Review');
+const mongoose = require('mongoose');
 const { AppError } = require('../middleware/errorHandler');
 const { escapeRegex, isValidObjectId } = require('../utils/helpers');
 
@@ -157,6 +158,11 @@ const createProduct = async (req, res, next) => {
 // @access  Admin
 const updateProduct = async (req, res, next) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return next(new AppError('Invalid product ID', 400));
+    }
+    const safeId = new mongoose.Types.ObjectId(req.params.id);
+
     // Regenerate slug if name changed — safe, bounded character-class regex
     if (req.body.name) {
       req.body.slug = req.body.name
@@ -165,7 +171,7 @@ const updateProduct = async (req, res, next) => {
         .replace(/^-|-$/g, '');
     }
 
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const product = await Product.findByIdAndUpdate(safeId, req.body, {
       new: true,
       runValidators: true,
     });
@@ -182,8 +188,12 @@ const updateProduct = async (req, res, next) => {
 // @access  Admin
 const deleteProduct = async (req, res, next) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return next(new AppError('Invalid product ID', 400));
+    }
+    const safeId = new mongoose.Types.ObjectId(req.params.id);
     const product = await Product.findByIdAndUpdate(
-      req.params.id,
+      safeId,
       { isActive: false },
       { new: true }
     );

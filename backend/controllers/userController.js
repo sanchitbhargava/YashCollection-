@@ -180,7 +180,10 @@ const getAllUsers = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
-    if (req.query.role) filter.role = req.query.role;
+    const allowedRoles = ['user', 'admin'];
+    if (req.query.role && allowedRoles.includes(req.query.role)) {
+      filter.role = req.query.role;
+    }
     if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === 'true';
     if (req.query.search) {
       const escaped = escapeRegex(req.query.search);
